@@ -9,7 +9,8 @@ from PyPDF2 import PdfFileWriter, PdfFileReader
 
 app = FastAPI()
 
-def f(input1):
+def f(x):
+    input1 = PdfFileReader(x)
     output = PdfFileWriter()
     output.addPage(input1.getPage(0))
     output.addPage(input1.getPage(1).rotateClockwise(90))
@@ -19,8 +20,7 @@ def f(input1):
 
 @app.post("/uploadfile/")
 async def create_upload_file(file: UploadFile = File(...)):
-    input1 = PdfFileReader(file.file)
-    f(input1)
+    f(file.file)
     return FileResponse('result.pdf', headers={'content-disposition': 'attachment; filename=blah.pdf'})
 
 if __name__ == "__main__":
