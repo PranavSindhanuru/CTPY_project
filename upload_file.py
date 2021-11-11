@@ -4,5 +4,5 @@ from fastapi.responses import FileResponse
 app = FastAPI()
 
 @app.get("/")
-def file():
-    return FileResponse('sample.pdf')
+def file(x):
+    return FileResponse(x)
