@@ -7,23 +7,20 @@ from fastapi import FastAPI, File, UploadFile
 
 from PyPDF2 import PdfFileWriter, PdfFileReader
 
-
 app = FastAPI()
 
+def f(input1):
+    output = PdfFileWriter()
+    output.addPage(input1.getPage(0))
+    output.addPage(input1.getPage(1).rotateClockwise(90))
+    with open("result.pdf", "wb") as f:
+        output.write(f)
+    return output
 
 @app.post("/uploadfile/")
 async def create_upload_file(file: UploadFile = File(...)):
-    output = PdfFileWriter()
     input1 = PdfFileReader(file.file)
-
-    print(f'{input1.getNumPages()}')
-
-    output.addPage(input1.getPage(0))
-    output.addPage(input1.getPage(1).rotateClockwise(90))
-
-    with open("result.pdf", "wb") as f:
-        output.write(f)
-    
+    f(input1)
     return FileResponse('result.pdf', headers={'content-disposition': 'attachment; filename=blah.pdf'})
 
 if __name__ == "__main__":
