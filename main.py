@@ -1,30 +1,74 @@
-# This is our main python file !
-# we code all the MAIN stuff in this
-from fastapi import FastAPI
+from fastapi import FastAPI, File, UploadFile, Query
 from fastapi.responses import FileResponse
 import uvicorn
-from fastapi import FastAPI, File, UploadFile
+import webbrowser
 from typing import List
 from PyPDF2 import PdfFileWriter, PdfFileReader
 
 app = FastAPI()
 
-
-def f(x):
-    input_file = PdfFileReader(x)
+def sort_pdf(file, order_list):
+    input_file = PdfFileReader(file)
     output = PdfFileWriter()
-    output.addPage(input_file.getPage(0))
-    output.addPage(input_file.getPage(1).rotateClockwise(90))
+    for page_no in order_list:
+        output.addPage(input_file.getPage(page_no-1))
     with open("result.pdf", "wb") as f:
         output.write(f)
     return output
 
+def merge_pdf(file_list):
+    output = PdfFileWriter()
+    for file in file_list:
+        input_file = PdfFileReader(file.file)
+        for index in input_file.getNumPages():
+            output.addPage(input_file.getPage(index))
+    with open("result.pdf", "wb") as f:
+        output.write(f)
+    return output
 
-@app.post("/uploadfile/")
-async def create_upload_file(files: List[UploadFile] = File(...)):
-    for file in files:
-        f(file.file)
+def delete_pdf(file, pages):
+    input_file = PdfFileReader(file)
+    output = PdfFileWriter()
+    for index in input_file.getNumPages():
+        for page_no in pages:
+            if index != page_no - 1:
+                output.addPage(input_file.getPage(index))
+    with open("result.pdf", "wb") as f:
+        output.write(f)
+    return output
+
+@app.post("/sort/")
+async def sort_pdf_file(order: List[int] = Query(None), file: UploadFile = File(...)):
+    sort_pdf(file.file, order)
+    return FileResponse('result.pdf', headers={'content-disposition': 'attachment; filename=result.pdf'}) 
+
+@app.post("/merge/")
+async def merge_pdf_file(files: List[UploadFile] = File(...)):
+    merge_pdf(files)
+    return FileResponse('result.pdf', headers={'content-disposition': 'attachment; filename=result.pdf'}) 
+
+@app.post("/delete/")
+async def delete_pdf_pages(pages: List[int] = Query(None), file: UploadFile = File(...)):
+    delete_pdf(file.file, pages)
     return FileResponse('result.pdf', headers={'content-disposition': 'attachment; filename=result.pdf'})
+
+# def f(x):
+#     input_file = PdfFileReader(x)
+#     output = PdfFileWriter()
+#     output.addPage(input_file.getPage(0))
+#     output.addPage(input_file.getPage(1).rotateClockwise(90))
+#     with open("result.pdf", "wb") as f:
+#         output.write(f)
+#     return output
+
+# @app.post("/uploadfile/")
+# async def create_upload_file(q: List[int] = Query(None), files: List[UploadFile] = File(...)):
+#     for file in files:
+#         f(file.file)
+#     return FileResponse('result.pdf', headers={'content-disposition': 'attachment; filename=result.pdf'}) 
+    
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    
+# webbrowser.open("http://localhost:8000/docs")

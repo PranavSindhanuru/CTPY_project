@@ -1,6 +1,5 @@
 from PyPDF2 import PdfFileWriter, PdfFileReader
 
-# x = [1, 3, 2]
 def sort_pdf(file, order_list):
     input_file = PdfFileReader(file)
     output = PdfFileWriter()
