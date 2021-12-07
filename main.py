@@ -29,13 +29,27 @@ def merge_pdf(file_list):
 def delete_pdf(file, pages):
     input_file = PdfFileReader(file)
     output = PdfFileWriter()
+    pages = [x - 1 for x in pages]
     for index in input_file.getNumPages():
-        for page_no in pages:
-            if index != page_no - 1:
+            if index not in pages:
                 output.addPage(input_file.getPage(index))
     with open("result.pdf", "wb") as f:
         output.write(f)
     return output
+
+def rotate_page(file, pages, rotation):
+    input_file = PdfFileReader(file)
+    output = PdfFileWriter()
+    pages = [x - 1 for x in pages]
+    for index in input_file.getNumPages():
+        if index in pages:
+            output.addPage(input_file.getPage(index).rotateClockwise(rotation))
+        else:
+            output.addPage(input_file.getPage(index))
+    with open("result.pdf", "wb") as f:
+        output.write(f)
+    return output
+
 
 @app.post("/sort/")
 async def sort_pdf_file(order: List[int] = Query(None), file: UploadFile = File(...)):
@@ -50,6 +64,11 @@ async def merge_pdf_file(files: List[UploadFile] = File(...)):
 @app.post("/delete/")
 async def delete_pdf_pages(pages: List[int] = Query(None), file: UploadFile = File(...)):
     delete_pdf(file.file, pages)
+    return FileResponse('result.pdf', headers={'content-disposition': 'attachment; filename=result.pdf'})
+
+@app.post("/rotate/")
+async def rotate_pdf_pages(rotation: int, pages: List[int] = Query(None), file: UploadFile = File(...)):
+    rotate_page(file.file, pages, rotation)
     return FileResponse('result.pdf', headers={'content-disposition': 'attachment; filename=result.pdf'})
 
 # def f(x):
