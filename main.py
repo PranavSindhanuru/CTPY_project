@@ -1,9 +1,10 @@
 from fastapi import FastAPI, File, UploadFile, Query
 from fastapi.responses import FileResponse
 import uvicorn
-import webbrowser
 from typing import List
 from PyPDF2 import PdfFileWriter, PdfFileReader, PdfFileMerger
+import img2pdf
+from PIL import Image
 
 app = FastAPI()
 
@@ -63,6 +64,19 @@ def watermark_pdf_pages(file, watermark):
         output.write(f)
     return output
 
+def pdf_to_text(file):
+    input_file = PdfFileReader(file)
+    text_file = open("result.txt", "a")
+    for i in range(input_file.getNumPages()):
+        txt = input_file.getPage(i).extractText()
+        text_file.writelines(txt)
+    text_file.close()
+    
+
+def image_to_pdf_file(file):
+    pdf_bytes = img2pdf.convert(file)
+    with open("result.pdf", "wb") as f:
+        f.write(pdf_bytes)
 
 @app.post("/sort/")
 async def sort_pdf_file(order: List[int] = Query(None), file: UploadFile = File(...)):
@@ -89,6 +103,16 @@ async def watermark_pdf(file: UploadFile = File(...), watermark: UploadFile = Fi
     watermark_pdf_pages(file.file, watermark.file)
     return FileResponse('result.pdf', headers={'content-disposition': 'attachment; filename=result.pdf'})
 
+@app.post("/pdf_to_text/")
+async def pdf_to_text_file(file: UploadFile = File(...)):
+    pdf_to_text(file.file)
+    return FileResponse('result.txt', headers={'content-disposition': 'attachment; filename=result.txt'})
+
+@app.post("/image_to_pdf/")
+async def image_to_pdf(file: UploadFile = File(...)):
+    image_to_pdf_file(file.file)
+    return FileResponse('result.pdf', headers={'content-disposition': 'attachment; filename=result.pdf'})
+    
 # def f(x):
 #     input_file = PdfFileReader(x)
 #     output = PdfFileWriter()
