@@ -66,7 +66,7 @@ def watermark_pdf_pages(file, watermark):
 
 def pdf_to_text(file):
     input_file = PdfFileReader(file)
-    text_file = open("result.txt", "a")
+    text_file = open("result.txt", "w")
     for i in range(input_file.getNumPages()):
         txt = input_file.getPage(i).extractText()
         text_file.writelines(txt)
