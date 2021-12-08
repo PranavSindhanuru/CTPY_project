@@ -3,7 +3,7 @@ from fastapi.responses import FileResponse
 import uvicorn
 import webbrowser
 from typing import List
-from PyPDF2 import PdfFileWriter, PdfFileReader
+from PyPDF2 import PdfFileWriter, PdfFileReader, PdfFileMerger
 
 app = FastAPI()
 
@@ -50,6 +50,19 @@ def rotate_page(file, pages, rotation):
         output.write(f)
     return output
 
+def watermark_pdf_pages(file, watermark):
+    input_file = PdfFileReader(file)
+    watermark_file = PdfFileReader(watermark)
+    watermark_page = watermark_file.getPage(0)
+    output = PdfFileWriter()
+    for i in range(input_file.getNumPages()):
+        page = input_file.getPage(i)
+        page.mergePage(watermark_page)
+        output.addPage(page)
+    with open("result.pdf", "wb") as f:
+        output.write(f)
+    return output
+
 
 @app.post("/sort/")
 async def sort_pdf_file(order: List[int] = Query(None), file: UploadFile = File(...)):
@@ -69,6 +82,11 @@ async def delete_pdf_pages(pages: List[int] = Query(None), file: UploadFile = Fi
 @app.post("/rotate/")
 async def rotate_pdf_pages(rotation: int, pages: List[int] = Query(None), file: UploadFile = File(...)):
     rotate_page(file.file, pages, rotation)
+    return FileResponse('result.pdf', headers={'content-disposition': 'attachment; filename=result.pdf'})
+
+@app.post("/watermark/")
+async def watermark_pdf(file: UploadFile = File(...), watermark: UploadFile = File(...)):
+    watermark_pdf_pages(file.file, watermark.file)
     return FileResponse('result.pdf', headers={'content-disposition': 'attachment; filename=result.pdf'})
 
 # def f(x):
