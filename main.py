@@ -2,9 +2,8 @@ from fastapi import FastAPI, File, UploadFile, Query
 from fastapi.responses import FileResponse
 import uvicorn
 from typing import List
-from PyPDF2 import PdfFileWriter, PdfFileReader, PdfFileMerger
+from PyPDF2 import PdfFileWriter, PdfFileReader
 import img2pdf
-from PIL import Image
 
 app = FastAPI()
 
