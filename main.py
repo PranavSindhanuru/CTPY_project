@@ -21,7 +21,7 @@ def merge_pdf(file_list):
     output = PdfFileWriter()
     for file in file_list:
         input_file = PdfFileReader(file.file)
-        for index in input_file.getNumPages():
+        for index in range(input_file.getNumPages()):
             output.addPage(input_file.getPage(index))
     with open("result.pdf", "wb") as f:
         output.write(f)
@@ -31,7 +31,7 @@ def delete_pdf(file, pages):
     input_file = PdfFileReader(file)
     output = PdfFileWriter()
     pages = [x - 1 for x in pages]
-    for index in input_file.getNumPages():
+    for index in range(input_file.getNumPages()):
             if index not in pages:
                 output.addPage(input_file.getPage(index))
     with open("result.pdf", "wb") as f:
@@ -42,7 +42,7 @@ def rotate_page(file, pages, rotation):
     input_file = PdfFileReader(file)
     output = PdfFileWriter()
     pages = [x - 1 for x in pages]
-    for index in input_file.getNumPages():
+    for index in range(input_file.getNumPages()):
         if index in pages:
             output.addPage(input_file.getPage(index).rotateClockwise(rotation))
         else:
@@ -118,3 +118,4 @@ if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
     
 # webbrowser.open("http://localhost:8000/docs")
+
